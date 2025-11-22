@@ -13,8 +13,9 @@ Model name is converted to lowercase for the collection name:
 
 from pydantic import BaseModel, Field
 from typing import Optional
+from enum import Enum
 
-# Example schemas (replace with your own):
+# Example schemas (keep for reference):
 
 class User(BaseModel):
     """
@@ -38,11 +39,34 @@ class Product(BaseModel):
     category: str = Field(..., description="Product category")
     in_stock: bool = Field(True, description="Whether product is in stock")
 
-# Add your own schemas here:
-# --------------------------------------------------
+# Food Calories App Schemas
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class MealType(str, Enum):
+    breakfast = "breakfast"
+    lunch = "lunch"
+    dinner = "dinner"
+    snack = "snack"
+
+class FoodItem(BaseModel):
+    """
+    A reusable food item with known calories per unit.
+    Collection name: "fooditem"
+    """
+    name: str = Field(..., description="Food name")
+    unit: str = Field("serving", description="Unit label, e.g., g, ml, piece, serving")
+    calories_per_unit: float = Field(..., gt=0, description="Calories per unit")
+
+class Entry(BaseModel):
+    """
+    A logged consumption entry for a specific day and meal.
+    Collection name: "entry"
+    """
+    date: str = Field(..., description="Entry date in YYYY-MM-DD format")
+    meal: MealType = Field(MealType.lunch, description="Meal type")
+    name: str = Field(..., description="Food name (can be custom)")
+    unit: str = Field("serving", description="Unit label")
+    quantity: float = Field(1.0, gt=0, description="How many units consumed")
+    calories_per_unit: float = Field(..., gt=0, description="Calories per single unit")
+    notes: Optional[str] = Field(None, description="Optional notes")
+
+# Note: The Flames database viewer can read these via GET /schema.
